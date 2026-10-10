@@ -2540,10 +2540,169 @@ main {
     letter-spacing: .08em;
   }
 
+  .mobile-header-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobile-user-quick-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mobile-user-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 36px;
+    padding: 0 9px;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-user-pill--customer {
+    background: rgba(184, 145, 92, 0.15);
+    border: 1px solid rgba(184, 145, 92, 0.45);
+    color: var(--gold);
+  }
+
+  .mobile-user-pill--admin {
+    background: rgba(201, 39, 47, 0.18);
+    border: 1px solid rgba(201, 39, 47, 0.55);
+    color: #ff646d;
+  }
+
+  .mobile-user-name {
+    max-width: 68px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--paper);
+  }
+
+  .mobile-quick-signout-btn {
+    height: 36px;
+    padding: 0 8px;
+    font-size: 7.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #ff646d;
+    background: rgba(201, 39, 47, 0.1);
+    border: 1px solid rgba(201, 39, 47, 0.45);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-quick-signout-btn:hover {
+    background: rgba(201, 39, 47, 0.25);
+    color: #ff9ca2;
+  }
+
+  .mobile-signin-btn {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(184, 145, 92, 0.45);
+    background: rgba(184, 145, 92, 0.1);
+    border-radius: 2px;
+  }
+
+  .mobile-drawer-auth-card {
+    padding: 16px 18px;
+    margin-bottom: 24px;
+    background: #11110f;
+    border: 1px solid rgba(184, 145, 92, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+
+  .mobile-drawer-auth-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .mobile-drawer-email {
+    font-size: 8px;
+    color: var(--muted);
+  }
+
+  .mobile-drawer-name {
+    display: block;
+    font-size: 13px;
+    color: var(--paper);
+    margin-bottom: 12px;
+  }
+
+  .mobile-drawer-auth-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mobile-drawer-signout-btn {
+    background: transparent;
+    border: 1px solid rgba(201, 39, 47, 0.45);
+    padding: 8px 12px;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #ff646d;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mobile-drawer-signout-btn:hover {
+    background: rgba(201, 39, 47, 0.2);
+    color: #ff9ca2;
+  }
+
+  .mobile-drawer-auth-card--guest {
+    padding: 14px 18px;
+  }
+
+  .mobile-nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .mobile-signout-footer-btn {
+    background: transparent;
+    border: 0;
+    font-family: var(--body);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #ff646d;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+  }
+
   .mobile-nav-extras {
     display: flex;
-    gap: 20px;
-    padding-top: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    padding-top: 20px;
     border-top: 1px solid rgba(184, 145, 92, .3);
   }
 

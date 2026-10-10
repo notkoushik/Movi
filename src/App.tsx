@@ -45,10 +45,64 @@ export function Header({ interior = false }: { interior?: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { cart, user, signOut } = useStore();
   const itemCount = cart.reduce((sum, line) => sum + line.quantity, 0);
+
   return (
     <header className={`site-header ${interior ? "site-header--interior" : ""}`}>
+      {/* BRAND MARK */}
       <Link to="/" aria-label="MOVI home"><Mark /></Link>
-      
+
+      {/* DESKTOP NAVIGATION (Desktop > 900px only) */}
+      <nav className="desktop-nav" aria-label="Desktop navigation">
+        <Link to="/shop">Shop</Link>
+        <Link to="/t-shirts">T-Shirts</Link>
+        <Link to="/hoodies">Hoodies</Link>
+        <Link to="/story">About</Link>
+        {user?.role === "admin" && (
+          <Link to="/admin" className="desktop-admin-badge-link">
+            Admin Portal ⚙
+          </Link>
+        )}
+      </nav>
+
+      {/* DESKTOP TOOLS (Desktop > 900px only) */}
+      <div className="header-tools">
+        {user ? (
+          <div className="header-user-status">
+            <Link
+              to={user.role === "admin" ? "/admin" : "/account"}
+              className={`header-user-badge ${user.role === "admin" ? "header-user-badge--admin" : "header-user-badge--customer"}`}
+              title={`Logged in as ${user.name} (${user.role.toUpperCase()})`}
+            >
+              <span className={user.role === "admin" ? "role-dot role-dot--admin" : "role-dot role-dot--customer"} />
+              <span className="role-label">{user.role === "admin" ? "ADMIN" : "CUSTOMER"}</span>
+              <span className="user-short-name">{user.name.split(" ")[0]}</span>
+            </Link>
+            <button
+              type="button"
+              className="header-signout-btn"
+              onClick={() => signOut()}
+              title="Sign Out"
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <Link to="/login" className="header-signin-btn">
+            Sign In
+          </Link>
+        )}
+
+        <Link to="/search" aria-label="Search" className="tool-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+          <span>Search</span>
+        </Link>
+        <Link to="/bag" aria-label={`Shopping bag, ${itemCount} items`} className="tool-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></svg>
+          <span>Bag ({itemCount})</span>
+        </Link>
+      </div>
+
+      {/* MOBILE QUICK TOOLS (Mobile <= 900px only) */}
       <div className="mobile-header-tools">
         {user ? (
           <div className="mobile-user-quick-bar">
@@ -92,8 +146,8 @@ export function Header({ interior = false }: { interior?: boolean }) {
         </button>
       </div>
 
-      <nav className={menuOpen ? "main-nav main-nav--open" : "main-nav"} aria-label="Main navigation">
-        {/* MOBILE DRAWER USER STATUS BANNER */}
+      {/* MOBILE DRAWER (Mobile <= 900px only) */}
+      <nav className={menuOpen ? "mobile-drawer mobile-drawer--open" : "mobile-drawer"} aria-label="Mobile navigation drawer">
         {user ? (
           <div className="drawer-user-card">
             <div className="drawer-user-card__header">
@@ -151,42 +205,6 @@ export function Header({ interior = false }: { interior?: boolean }) {
           <Link to="/story" onClick={() => setMenuOpen(false)}>Our Story</Link>
         </div>
       </nav>
-      <div className="header-tools">
-        {user ? (
-          <div className="header-user-status">
-            <Link
-              to={user.role === "admin" ? "/admin" : "/account"}
-              className={`header-user-badge ${user.role === "admin" ? "header-user-badge--admin" : "header-user-badge--customer"}`}
-              title={`Logged in as ${user.name} (${user.role.toUpperCase()})`}
-            >
-              <span className={user.role === "admin" ? "role-dot role-dot--admin" : "role-dot role-dot--customer"} />
-              <span className="role-label">{user.role === "admin" ? "ADMIN" : "CUSTOMER"}</span>
-              <span className="user-short-name">{user.name.split(" ")[0]}</span>
-            </Link>
-            <button
-              type="button"
-              className="header-signout-btn"
-              onClick={() => signOut()}
-              title="Sign Out"
-            >
-              Sign Out
-            </button>
-          </div>
-        ) : (
-          <Link to="/login" className="header-signin-btn">
-            Sign In
-          </Link>
-        )}
-
-        <Link to="/search" aria-label="Search" className="tool-btn">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
-          <span>Search</span>
-        </Link>
-        <Link to="/bag" aria-label={`Shopping bag, ${itemCount} items`} className="tool-btn">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></svg>
-          <span>Bag ({itemCount})</span>
-        </Link>
-      </div>
     </header>
   );
 }

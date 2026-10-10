@@ -1,0 +1,17 @@
+{
+  "title": "MOVI Clothing Co. — Move Your Way | Luxury Streetwear",
+  "description": "This e-commerce platform offers a luxurious shopping experience for a clothing brand, featuring bold visuals, streamlined navigation, and fast mobile performance.",
+  "icons": {
+    "icon": "/movi/logo.jpg"
+  },
+  "openGraph": {
+    "image": "/movi/logo.jpg"
+  },
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

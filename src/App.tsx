@@ -95,39 +95,41 @@ export function Header({ interior = false }: { interior?: boolean }) {
       <nav className={menuOpen ? "main-nav main-nav--open" : "main-nav"} aria-label="Main navigation">
         {/* MOBILE DRAWER USER STATUS BANNER */}
         {user ? (
-          <div className="mobile-drawer-auth-card">
-            <div className="mobile-drawer-auth-card__top">
-              <span className={`role-chip ${user.role === "admin" ? "role-chip--admin" : "role-chip--customer"}`}>
+          <div className="drawer-user-card">
+            <div className="drawer-user-card__header">
+              <span className={`drawer-user-role ${user.role === "admin" ? "drawer-user-role--admin" : "drawer-user-role--customer"}`}>
+                <span className={user.role === "admin" ? "role-dot role-dot--admin" : "role-dot role-dot--customer"} />
                 {user.role === "admin" ? "STUDIO ADMIN" : "CUSTOMER"}
               </span>
-              <span className="mobile-drawer-email">{user.email}</span>
-            </div>
-            <strong className="mobile-drawer-name">{user.name}</strong>
-            <div className="mobile-drawer-auth-actions">
-              <Link
-                to={user.role === "admin" ? "/admin" : "/account"}
-                onClick={() => setMenuOpen(false)}
-                className="outline-link outline-link--sm"
-              >
-                {user.role === "admin" ? "Admin Portal →" : "My Account →"}
-              </Link>
               <button
                 type="button"
-                className="mobile-drawer-signout-btn"
+                className="drawer-signout-btn"
                 onClick={() => { signOut(); setMenuOpen(false); }}
               >
-                Sign Out ✕
+                Sign Out
               </button>
             </div>
+            <strong className="drawer-user-name">{user.name}</strong>
+            <span className="drawer-user-email">{user.email}</span>
+            <Link
+              to={user.role === "admin" ? "/admin" : "/account"}
+              onClick={() => setMenuOpen(false)}
+              className="drawer-portal-link"
+            >
+              Open {user.role === "admin" ? "Admin Portal" : "My Account"} →
+            </Link>
           </div>
         ) : (
-          <div className="mobile-drawer-auth-card mobile-drawer-auth-card--guest">
-            <p className="micro">ACCOUNT ACCESS</p>
-            <div className="mobile-drawer-auth-actions">
-              <Link to="/login" onClick={() => setMenuOpen(false)} className="solid-link solid-link--sm">
-                Sign In / Register <Arrow />
-              </Link>
-            </div>
+          <div className="drawer-guest-card">
+            <span className="drawer-guest-tag">MEMBERSHIP ACCESS</span>
+            <Link
+              to="/login"
+              onClick={() => setMenuOpen(false)}
+              className="drawer-signin-btn"
+            >
+              <span>SIGN IN / REGISTER</span>
+              <span className="arrow" aria-hidden="true">→</span>
+            </Link>
           </div>
         )}
 
@@ -146,17 +148,7 @@ export function Header({ interior = false }: { interior?: boolean }) {
         <div className="mobile-nav-extras">
           <Link to="/search" onClick={() => setMenuOpen(false)}>Search</Link>
           <Link to="/bag" onClick={() => setMenuOpen(false)}>Bag ({itemCount})</Link>
-          {user ? (
-            <button
-              type="button"
-              className="mobile-signout-footer-btn"
-              onClick={() => { signOut(); setMenuOpen(false); }}
-            >
-              Sign Out
-            </button>
-          ) : (
-            <Link to="/login" onClick={() => setMenuOpen(false)}>Sign In</Link>
-          )}
+          <Link to="/story" onClick={() => setMenuOpen(false)}>Our Story</Link>
         </div>
       </nav>
       <div className="header-tools">

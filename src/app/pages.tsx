@@ -444,127 +444,172 @@ export function AdminPage() {
     );
   }
 
+  const totalStockUnits = Object.values(stocks).reduce((sum, count) => sum + count, 0);
+
   return (
     <section className="admin-screen">
-      <aside className="admin-sidebar">
-        <div className="admin-sidebar__header">
-          <p className="micro">MOVI / CONTROL CENTER</p>
-          <h1>Studio Admin</h1>
-          <div className="admin-status-badge">
-            <span className="live-pulse" />
-            <span>DIRECTOR MODE</span>
+      {/* UNIFIED TOP STUDIO BAR */}
+      <header className="admin-topbar">
+        <div className="admin-topbar__main">
+          <div className="admin-topbar__brand">
+            <span className="admin-atelier-tag">MOVI ATELIER / MUMBAI</span>
+            <div className="admin-title-row">
+              <h1>Studio Director Portal</h1>
+              <span className="admin-live-badge">
+                <span className="live-pulse" /> LIVE
+              </span>
+            </div>
           </div>
-          <p className="admin-user-id">Active: {user.name}</p>
-        </div>
 
-        <nav>
-          <button className={tab === "overview" ? "is-active" : ""} onClick={() => setTab("overview")}>
-            Overview <Arrow />
-          </button>
-          <button className={tab === "inventory" ? "is-active" : ""} onClick={() => setTab("inventory")}>
-            Inventory & Drops <Arrow />
-          </button>
-          <button className={tab === "orders" ? "is-active" : ""} onClick={() => setTab("orders")}>
-            Orders Dispatch ({orders.length}) <Arrow />
-          </button>
-          <button className={tab === "customers" ? "is-active" : ""} onClick={() => setTab("customers")}>
-            Customer Directory <Arrow />
-          </button>
-        </nav>
-
-        <div className="admin-sidebar__footer">
-          <Link to="/account" className="admin-switch-btn">
-            Switch to Customer View →
-          </Link>
-          <Link to="/" className="admin-storefront-btn">
-            View Live Storefront <Arrow />
-          </Link>
-          <button type="button" className="admin-signout-btn" onClick={() => signOut()}>
-            Sign Out
-          </button>
-        </div>
-      </aside>
-
-      <div className="admin-content">
-        <header className="admin-content__header">
-          <div>
-            <p className="micro">STUDIO DIRECTORY / MUMBAI ATELIER</p>
-            <h2>{tab.toUpperCase()}</h2>
-          </div>
-          <div className="admin-header-actions">
-            <span className="admin-session-tag">Logged In: {user.name}</span>
-            <button type="button" className="outline-link outline-link--sm" onClick={() => signOut()}>
-              Sign Out
+          <div className="admin-topbar__user">
+            <div className="admin-user-pill">
+              <span className="admin-avatar">K</span>
+              <div className="admin-user-meta">
+                <strong>{user.name}</strong>
+                <small>Studio Director</small>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="admin-signout-action"
+              onClick={() => signOut()}
+              title="Sign Out"
+            >
+              Sign Out ✕
             </button>
           </div>
-        </header>
+        </div>
 
+        {/* QUICK JUMP BAR */}
+        <div className="admin-quick-nav">
+          <Link to="/" className="quick-nav-pill">
+            Storefront ↗
+          </Link>
+          <Link to="/account" className="quick-nav-pill">
+            Customer View ↗
+          </Link>
+        </div>
+
+        {/* TABS SWITCHER */}
+        <nav className="admin-tabs-nav" aria-label="Admin tabs">
+          <button
+            type="button"
+            className={tab === "overview" ? "admin-tab is-active" : "admin-tab"}
+            onClick={() => setTab("overview")}
+          >
+            <span>Overview</span>
+          </button>
+          <button
+            type="button"
+            className={tab === "inventory" ? "admin-tab is-active" : "admin-tab"}
+            onClick={() => setTab("inventory")}
+          >
+            <span>Inventory ({products.length})</span>
+          </button>
+          <button
+            type="button"
+            className={tab === "orders" ? "admin-tab is-active" : "admin-tab"}
+            onClick={() => setTab("orders")}
+          >
+            <span>Orders ({orders.length})</span>
+          </button>
+          <button
+            type="button"
+            className={tab === "customers" ? "admin-tab is-active" : "admin-tab"}
+            onClick={() => setTab("customers")}
+          >
+            <span>Customers (3)</span>
+          </button>
+        </nav>
+      </header>
+
+      <div className="admin-main-container">
         {/* OVERVIEW TAB */}
         {tab === "overview" && (
-          <>
-            <div className="admin-metrics">
-              <article className="metric-card">
-                <span>Gross Revenue</span>
-                <strong>₹ {revenue.toLocaleString("en-IN")}</strong>
-                <small>From all customer orders</small>
+          <div className="admin-tab-pane">
+            <div className="admin-metrics-grid">
+              <article className="admin-stat-card admin-stat-card--gold">
+                <span className="stat-label">Gross Revenue</span>
+                <strong className="stat-value">₹ {revenue.toLocaleString("en-IN")}</strong>
+                <span className="stat-sub">From {orders.length} Customer Orders</span>
               </article>
-              <article className="metric-card">
-                <span>Customer Orders</span>
-                <strong>{orders.length.toString().padStart(2, "0")}</strong>
-                <small>100% On schedule</small>
+              <article className="admin-stat-card">
+                <span className="stat-label">Customer Orders</span>
+                <strong className="stat-value">{orders.length.toString().padStart(2, "0")}</strong>
+                <span className="stat-sub">100% Fulfilled / On Track</span>
               </article>
-              <article className="metric-card">
-                <span>Active Drops</span>
-                <strong>03 DROPS</strong>
-                <small>T-Shirts • Hoodies • Cargo</small>
+              <article className="admin-stat-card">
+                <span className="stat-label">Active Drops</span>
+                <strong className="stat-value">03</strong>
+                <span className="stat-sub">FW 2026 Collection</span>
               </article>
-              <article className="metric-card">
-                <span>Inventory Units</span>
-                <strong>150 UNITS</strong>
-                <small>Across all sizes</small>
+              <article className="admin-stat-card">
+                <span className="stat-label">Inventory Units</span>
+                <strong className="stat-value">{totalStockUnits}</strong>
+                <span className="stat-sub">Across All Size Runs</span>
               </article>
             </div>
 
-            <div className="admin-chart">
-              <div className="admin-chart__head">
+            {/* REVENUE VELOCITY CHART */}
+            <div className="admin-chart-card">
+              <div className="admin-chart-card__head">
                 <div>
-                  <p className="micro">REVENUE VELOCITY (FW 2026)</p>
-                  <strong>₹ {revenue.toLocaleString("en-IN")}</strong>
+                  <span className="stat-label">7-DAY REVENUE VELOCITY</span>
+                  <h3>₹ {revenue.toLocaleString("en-IN")}</h3>
                 </div>
-                <span className="live-tag">LIVE STORE DATA</span>
+                <span className="velocity-tag">+24.8% FW SPEED</span>
               </div>
-              <div className="bars">
-                {[45, 62, 50, 78, 68, 92, 80, 98, 86, 100, 90, 95, 88, 99].map((height, index) => (
-                  <div key={index} className="bar-wrapper" title={`Day ${index + 1}: ${height}%`}>
-                    <i style={{ height: `${height}%` }} />
-                    <span>D{index + 1}</span>
+              <div className="admin-chart-bars">
+                {[
+                  { day: "MON", val: "₹ 2.4K", height: "48%" },
+                  { day: "TUE", val: "₹ 3.8K", height: "65%" },
+                  { day: "WED", val: "₹ 3.1K", height: "55%" },
+                  { day: "THU", val: "₹ 5.2K", height: "82%" },
+                  { day: "FRI", val: "₹ 4.6K", height: "74%" },
+                  { day: "SAT", val: "₹ 7.1K", height: "100%" },
+                  { day: "SUN", val: "₹ 6.4K", height: "92%" },
+                ].map((item, index) => (
+                  <div key={index} className="velocity-bar-col">
+                    <span className="velocity-val">{item.val}</span>
+                    <div className="velocity-bar-track">
+                      <div className="velocity-bar-fill" style={{ height: item.height }} />
+                    </div>
+                    <span className="velocity-day">{item.day}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="admin-quick-orders">
-              <div className="section-subheading">
-                <h3>Live Customer Orders</h3>
-                <button type="button" className="text-link" onClick={() => setTab("orders")}>
-                  Manage All Orders →
+            {/* LIVE ORDERS STREAM */}
+            <div className="admin-section-block">
+              <div className="admin-section-header">
+                <div>
+                  <span className="stat-label">RECENT DISPATCH STREAM</span>
+                  <h2>Customer Orders</h2>
+                </div>
+                <button type="button" className="admin-view-all-btn" onClick={() => setTab("orders")}>
+                  Manage All ({orders.length}) →
                 </button>
               </div>
-              <div className="admin-table">
-                <div className="table-head">
-                  <span>Order ID</span>
-                  <span>Customer</span>
-                  <span>Total</span>
-                  <span>Date</span>
-                  <span>Dispatch Status</span>
-                </div>
+
+              <div className="admin-orders-stream">
                 {orders.map((order) => (
-                  <div className="table-row" key={order.id}>
-                    <span><strong>{order.id}</strong></span>
-                    <span>{order.customerName || "Aarav Sharma"}</span>
-                    <span>₹ {order.total.toLocaleString("en-IN")}</span>
-                    <span>{order.date}</span>
-                    <span>
+                  <article key={order.id} className="admin-order-item">
+                    <div className="admin-order-item__top">
+                      <div className="admin-order-id-group">
+                        <strong className="order-id">{order.id}</strong>
+                        <span className="order-date">{order.date}</span>
+                      </div>
+                      <strong className="order-total">₹ {order.total.toLocaleString("en-IN")}</strong>
+                    </div>
+
+                    <div className="admin-order-item__details">
+                      <span className="order-customer">👤 {order.customerName || "Aarav Sharma"}</span>
+                      <span className="order-pieces">{order.items.length} item{order.items.length > 1 ? "s" : ""}</span>
+                    </div>
+
+                    <div className="admin-order-item__footer">
+                      <span className="status-label">Status:</span>
                       <select
                         value={order.status}
                         onChange={(e) => updateOrderStatus(order.id, e.target.value as any)}
@@ -574,49 +619,54 @@ export function AdminPage() {
                         <option value="Shipped">Shipped</option>
                         <option value="Delivered">Delivered</option>
                       </select>
-                    </span>
-                  </div>
+                    </div>
+                  </article>
                 ))}
               </div>
             </div>
-          </>
+          </div>
         )}
 
-        {/* INVENTORY & DROPS TAB */}
+        {/* INVENTORY TAB */}
         {tab === "inventory" && (
-          <div className="admin-inventory-section">
-            <div className="admin-table">
-              <div className="table-head">
-                <span>Product / Drop</span>
-                <span>Category</span>
-                <span>Retail Price</span>
-                <span>Live Stock</span>
-                <span>Adjust Inventory</span>
+          <div className="admin-tab-pane">
+            <div className="admin-section-header">
+              <div>
+                <span className="stat-label">LIVE STOCK MANAGEMENT</span>
+                <h2>Atelier Drops Catalog</h2>
               </div>
+              <span className="stat-sub">{products.length} Products Tracked</span>
+            </div>
+
+            <div className="admin-inventory-list">
               {products.map((product) => {
                 const stock = stocks[product.code] ?? 30;
                 return (
-                  <div className="table-row" key={product.code}>
-                    <span className="table-product-cell">
+                  <article key={product.code} className="admin-product-stock-card">
+                    <div className="stock-card-thumb">
                       <img src={product.image} alt={product.name} />
-                      <div>
+                    </div>
+                    <div className="stock-card-info">
+                      <div className="stock-card-title-row">
                         <strong>{product.name}</strong>
-                        <small>CODE: {product.code}</small>
+                        <span className="stock-category">{product.category}</span>
                       </div>
-                    </span>
-                    <span>{product.category}</span>
-                    <span>{product.price}</span>
-                    <span>
-                      <strong className={stock < 20 ? "stock-low" : "stock-ok"}>
-                        {stock} units left
-                      </strong>
-                    </span>
-                    <span className="stock-controls">
-                      <button type="button" onClick={() => updateStock(product.code, -5)}>-5</button>
-                      <button type="button" onClick={() => updateStock(product.code, 10)}>+10</button>
-                      <button type="button" onClick={() => updateStock(product.code, 50)}>+50</button>
-                    </span>
-                  </div>
+                      <div className="stock-card-meta">
+                        <span className="stock-code">SKU: {product.code}</span>
+                        <span className="stock-price">{product.price}</span>
+                      </div>
+                      <div className="stock-level-badge">
+                        <span className={stock < 20 ? "stock-pill stock-pill--low" : "stock-pill stock-pill--ok"}>
+                          {stock < 20 ? "● LOW STOCK" : "● IN STOCK"}: {stock} units
+                        </span>
+                      </div>
+                      <div className="stock-stepper">
+                        <button type="button" onClick={() => updateStock(product.code, -5)} title="Decrease 5">-5</button>
+                        <button type="button" onClick={() => updateStock(product.code, 10)} title="Add 10">+10</button>
+                        <button type="button" onClick={() => updateStock(product.code, 50)} title="Add 50">+50</button>
+                      </div>
+                    </div>
+                  </article>
                 );
               })}
             </div>
@@ -625,22 +675,32 @@ export function AdminPage() {
 
         {/* ORDERS TAB */}
         {tab === "orders" && (
-          <div className="admin-orders-section">
-            <div className="admin-table">
-              <div className="table-head">
-                <span>Order ID</span>
-                <span>Customer</span>
-                <span>Amount</span>
-                <span>Date</span>
-                <span>Fulfillment Status</span>
+          <div className="admin-tab-pane">
+            <div className="admin-section-header">
+              <div>
+                <span className="stat-label">FULFILLMENT & DISPATCH</span>
+                <h2>All Store Orders ({orders.length})</h2>
               </div>
+            </div>
+
+            <div className="admin-orders-stream">
               {orders.map((order) => (
-                <div className="table-row" key={order.id}>
-                  <span><strong>{order.id}</strong></span>
-                  <span>{order.customerName || "Aarav Sharma"}</span>
-                  <span>₹ {order.total.toLocaleString("en-IN")}</span>
-                  <span>{order.date}</span>
-                  <span>
+                <article key={order.id} className="admin-order-item">
+                  <div className="admin-order-item__top">
+                    <div className="admin-order-id-group">
+                      <strong className="order-id">{order.id}</strong>
+                      <span className="order-date">{order.date}</span>
+                    </div>
+                    <strong className="order-total">₹ {order.total.toLocaleString("en-IN")}</strong>
+                  </div>
+
+                  <div className="admin-order-item__details">
+                    <span className="order-customer">👤 {order.customerName || "Aarav Sharma"}</span>
+                    <span className="order-pieces">{order.items.length} items &bull; Express Delivery</span>
+                  </div>
+
+                  <div className="admin-order-item__footer">
+                    <span className="status-label">Fulfillment Status:</span>
                     <select
                       value={order.status}
                       onChange={(e) => updateOrderStatus(order.id, e.target.value as any)}
@@ -650,45 +710,68 @@ export function AdminPage() {
                       <option value="Shipped">Shipped</option>
                       <option value="Delivered">Delivered</option>
                     </select>
-                  </span>
-                </div>
+                  </div>
+                </article>
               ))}
             </div>
           </div>
         )}
 
-        {/* CUSTOMERS DIRECTORY TAB */}
+        {/* CUSTOMERS TAB */}
         {tab === "customers" && (
-          <div className="admin-customers-section">
-            <div className="admin-table">
-              <div className="table-head">
-                <span>Customer Name</span>
-                <span>Email Address</span>
-                <span>Tier</span>
-                <span>Phone Number</span>
-                <span>Location</span>
+          <div className="admin-tab-pane">
+            <div className="admin-section-header">
+              <div>
+                <span className="stat-label">CLIENTELE REGISTRY</span>
+                <h2>Customer Directory</h2>
               </div>
-              <div className="table-row">
-                <span><strong>Aarav Sharma</strong></span>
-                <span>customer@movi.in</span>
-                <span><span className="tier-tag">VIP MEMBER</span></span>
-                <span>+91 98201 44820</span>
-                <span>Bandra West, Mumbai</span>
-              </div>
-              <div className="table-row">
-                <span><strong>Rohan Verma</strong></span>
-                <span>rohan.v@gmail.com</span>
-                <span><span className="tier-tag">REGULAR</span></span>
-                <span>+91 99112 34567</span>
-                <span>Indiranagar, Bengaluru</span>
-              </div>
-              <div className="table-row">
-                <span><strong>Priya Menon</strong></span>
-                <span>priya.m@icloud.com</span>
-                <span><span className="tier-tag">VIP MEMBER</span></span>
-                <span>+91 97450 88910</span>
-                <span>Kochi, Kerala</span>
-              </div>
+            </div>
+
+            <div className="admin-customer-cards">
+              <article className="admin-customer-card">
+                <div className="customer-card-head">
+                  <span className="customer-avatar">A</span>
+                  <div>
+                    <strong>Aarav Sharma</strong>
+                    <small>customer@movi.in</small>
+                  </div>
+                  <span className="tier-tag">VIP MEMBER</span>
+                </div>
+                <div className="customer-card-meta">
+                  <span>📞 +91 98201 44820</span>
+                  <span>📍 Bandra West, Mumbai, MH</span>
+                </div>
+              </article>
+
+              <article className="admin-customer-card">
+                <div className="customer-card-head">
+                  <span className="customer-avatar">R</span>
+                  <div>
+                    <strong>Rohan Varma</strong>
+                    <small>rohan.v@gmail.com</small>
+                  </div>
+                  <span className="tier-tag">REGULAR</span>
+                </div>
+                <div className="customer-card-meta">
+                  <span>📞 +91 99112 34567</span>
+                  <span>📍 Indiranagar, Bengaluru, KA</span>
+                </div>
+              </article>
+
+              <article className="admin-customer-card">
+                <div className="customer-card-head">
+                  <span className="customer-avatar">P</span>
+                  <div>
+                    <strong>Priya Menon</strong>
+                    <small>priya.m@icloud.com</small>
+                  </div>
+                  <span className="tier-tag">VIP MEMBER</span>
+                </div>
+                <div className="customer-card-meta">
+                  <span>📞 +91 97450 88910</span>
+                  <span>📍 Marine Drive, Kochi, KL</span>
+                </div>
+              </article>
             </div>
           </div>
         )}

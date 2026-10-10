@@ -124,53 +124,59 @@ export function AuthPage() {
         {/* DEMO ACCESS ACCOUNTS */}
         <div className="demo-accounts-box">
           <div className="demo-accounts-box__head">
-            <span className="gold-dot" />
-            <h3>Quick Role Login</h3>
+            <h3>
+              <span className="gold-dot" />
+              Quick Demo Access
+            </h3>
+            <span className="demo-1tap-badge">1-TAP SIGN IN</span>
           </div>
-          <p className="demo-accounts-box__desc">
-            Test the separate Customer and Admin screens with 1-click access:
-          </p>
 
           <div className="demo-accounts-grid">
-            {/* Customer Account */}
-            <div className="demo-account-card demo-account-card--customer">
-              <div className="demo-account-card__top">
-                <span className="account-tag account-tag--customer">CUSTOMER</span>
-                <span className="account-name">Aarav Sharma</span>
+            {/* Customer Account Tile */}
+            <button
+              type="button"
+              className="demo-account-tile demo-account-tile--customer"
+              onClick={() => handleQuickLogin("customer")}
+              title="Sign in instantly as Customer"
+            >
+              <div className="demo-tile-left">
+                <span className="demo-avatar demo-avatar--customer">A</span>
+                <div className="demo-tile-meta">
+                  <div className="demo-tile-title-row">
+                    <strong className="account-name">Aarav Sharma</strong>
+                    <span className="account-tag account-tag--customer">CUSTOMER</span>
+                  </div>
+                  <span className="demo-cred-hint">customer@movi.in &bull; Pass: movi2026</span>
+                </div>
               </div>
-              <div className="demo-account-card__credentials">
-                <code>customer@movi.in</code>
-                <code>Pass: movi2026</code>
-              </div>
-              <p className="demo-account-card__access">View order history, address & customer portal</p>
-              <button
-                type="button"
-                className="demo-account-btn demo-account-btn--customer"
-                onClick={() => handleQuickLogin("customer")}
-              >
-                Sign In as Customer <Arrow />
-              </button>
-            </div>
+              <span className="demo-tile-action demo-tile-action--customer">
+                <span>Sign In</span>
+                <Arrow />
+              </span>
+            </button>
 
-            {/* Admin Account */}
-            <div className="demo-account-card demo-account-card--admin">
-              <div className="demo-account-card__top">
-                <span className="account-tag account-tag--admin">STUDIO ADMIN</span>
-                <span className="account-name">Koushik (Director)</span>
+            {/* Admin Account Tile */}
+            <button
+              type="button"
+              className="demo-account-tile demo-account-tile--admin"
+              onClick={() => handleQuickLogin("admin")}
+              title="Sign in instantly as Studio Director"
+            >
+              <div className="demo-tile-left">
+                <span className="demo-avatar demo-avatar--admin">K</span>
+                <div className="demo-tile-meta">
+                  <div className="demo-tile-title-row">
+                    <strong className="account-name">Koushik (Director)</strong>
+                    <span className="account-tag account-tag--admin">ADMIN</span>
+                  </div>
+                  <span className="demo-cred-hint">admin@movi.in &bull; Pass: admin2026</span>
+                </div>
               </div>
-              <div className="demo-account-card__credentials">
-                <code>admin@movi.in</code>
-                <code>Pass: admin2026</code>
-              </div>
-              <p className="demo-account-card__access">Manage inventory, adjust drop stocks & dispatch</p>
-              <button
-                type="button"
-                className="demo-account-btn demo-account-btn--admin"
-                onClick={() => handleQuickLogin("admin")}
-              >
-                Sign In as Admin <Arrow />
-              </button>
-            </div>
+              <span className="demo-tile-action demo-tile-action--admin">
+                <span>Sign In</span>
+                <Arrow />
+              </span>
+            </button>
           </div>
         </div>
 

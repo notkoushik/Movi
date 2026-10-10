@@ -2747,9 +2747,13 @@ main {
     font-size: 25px;
   }
 
+  .auth-screen__form {
+    padding: 36px 5%;
+  }
+
   .auth-screen__form h1,
   .account-nav h1 {
-    font-size: 64px;
+    font-size: clamp(44px, 11vw, 64px);
   }
 
   .account-nav nav {
@@ -3177,27 +3181,32 @@ main {
 }
 
 .demo-accounts-box {
-  margin: 20px 0 24px;
-  padding: 20px 22px;
-  background: rgba(15, 15, 14, 0.95);
-  border: 1px solid rgba(184, 145, 92, 0.38);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  margin: 18px 0 22px;
+  padding: 16px 18px;
+  background: #0e0e0d;
+  border: 1px solid rgba(184, 145, 92, 0.32);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
 }
 
 .demo-accounts-box__head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
   gap: 8px;
-  margin-bottom: 6px;
 }
 
 .demo-accounts-box__head h3 {
   margin: 0;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .gold-dot {
@@ -3206,130 +3215,178 @@ main {
   border-radius: 50%;
   background: var(--gold);
   box-shadow: 0 0 8px var(--gold);
+  display: inline-block;
+  flex-shrink: 0;
 }
 
-.demo-accounts-box__desc {
-  margin: 0 0 16px;
-  font-size: 9px;
-  line-height: 1.5;
-  color: var(--muted);
+.demo-1tap-badge {
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(184, 145, 92, 0.14);
+  border: 1px solid rgba(184, 145, 92, 0.4);
+  padding: 3px 8px;
+  border-radius: 2px;
+  white-space: nowrap;
 }
 
 .demo-accounts-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.demo-account-card {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 16px 18px;
-  background: #0d0d0c;
-  border: 1px solid rgba(184, 145, 92, 0.28);
-  transition: all 0.25s ease;
+  gap: 10px;
+  width: 100%;
 }
 
-.demo-account-card:hover {
-  border-color: var(--gold);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-  transform: translateY(-2px);
-}
-
-.demo-account-card--admin {
-  border-color: rgba(201, 39, 47, 0.45);
-}
-
-.demo-account-card--admin:hover {
-  border-color: #ff5e67;
-  box-shadow: 0 6px 20px rgba(201, 39, 47, 0.25);
-}
-
-.demo-account-card__top {
+.demo-account-tile {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  padding: 12px 14px;
+  background: #141412;
+  border: 1px solid rgba(233, 227, 215, 0.14);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  box-sizing: border-box;
+  gap: 12px;
+}
+
+.demo-account-tile:hover {
+  background: #1a1a17;
+  transform: translateY(-1px);
+}
+
+.demo-account-tile--customer:hover {
+  border-color: var(--gold);
+  box-shadow: 0 4px 16px rgba(184, 145, 92, 0.2);
+}
+
+.demo-account-tile--admin:hover {
+  border-color: #ff5e67;
+  box-shadow: 0 4px 16px rgba(201, 39, 47, 0.25);
+}
+
+.demo-tile-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.demo-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.demo-avatar--customer {
+  background: rgba(184, 145, 92, 0.16);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+}
+
+.demo-avatar--admin {
+  background: rgba(201, 39, 47, 0.18);
+  border: 1px solid #ff5e67;
+  color: #ff5e67;
+}
+
+.demo-tile-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.demo-tile-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.account-name {
+  font-size: 11px;
+  color: var(--paper);
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .account-tag {
-  font-size: 7.5px;
+  font-size: 7px;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   padding: 2px 6px;
+  border-radius: 2px;
+  text-transform: uppercase;
 }
 
 .account-tag--customer {
-  background: rgba(184, 145, 92, 0.2);
+  background: rgba(184, 145, 92, 0.18);
   color: var(--gold);
   border: 1px solid rgba(184, 145, 92, 0.4);
 }
 
 .account-tag--admin {
-  background: rgba(201, 39, 47, 0.2);
+  background: rgba(201, 39, 47, 0.18);
   color: #ff646d;
-  border: 1px solid rgba(201, 39, 47, 0.5);
+  border: 1px solid rgba(201, 39, 47, 0.45);
 }
 
-.account-name {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--paper);
-}
-
-.demo-account-card__credentials {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  margin-bottom: 8px;
-}
-
-.demo-account-card__credentials code {
-  font-family: monospace;
+.demo-cred-hint {
   font-size: 8.5px;
   color: var(--muted);
-  letter-spacing: 0.05em;
+  font-family: monospace;
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.demo-account-card__access {
-  margin: 0 0 14px;
-  font-size: 8.5px;
-  color: #888;
-  line-height: 1.45;
-}
-
-.demo-account-btn {
-  display: flex;
+.demo-tile-action {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 9px 12px;
+  gap: 6px;
+  padding: 6px 12px;
   font-size: 8px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.25s ease;
+  border-radius: 2px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
-.demo-account-btn--customer {
-  border: 1px solid var(--gold);
-  background: transparent;
+.demo-tile-action--customer {
+  background: rgba(184, 145, 92, 0.12);
+  border: 1px solid rgba(184, 145, 92, 0.5);
   color: var(--gold);
 }
 
-.demo-account-btn--customer:hover {
+.demo-account-tile--customer:hover .demo-tile-action--customer {
   background: var(--gold);
-  color: var(--ink);
+  color: #000;
 }
 
-.demo-account-btn--admin {
-  border-color: #ff646d;
-  background: transparent;
+.demo-tile-action--admin {
+  background: rgba(201, 39, 47, 0.14);
+  border: 1px solid rgba(201, 39, 47, 0.5);
   color: #ff646d;
 }
 
-.demo-account-btn--admin:hover {
+.demo-account-tile--admin:hover .demo-tile-action--admin {
   background: #ff646d;
   color: #000;
 }

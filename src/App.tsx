@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useStore } from "./app/store";
+import WalkingTee from "./app/walking-tee";
 
 const images = {
   logo: "/movi/logo.jpg",
@@ -460,9 +461,8 @@ export function Home() {
             <p>Indian roots.<br />Global movement.</p>
             <span className="gold-dash" />
           </div>
-          <div className="movement__aside-frame">
-            <img src={images.city} alt="Mumbai city flyover and architectural overpass at night" width="480" height="340" loading="lazy" />
-            <div className="movement__aside-tag">Mumbai / Urban Night</div>
+          <div className="movement__aside-frame movement__aside-frame--tee">
+            <WalkingTee />
           </div>
         </aside>
       </section>

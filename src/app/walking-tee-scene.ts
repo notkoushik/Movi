@@ -34,7 +34,6 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 type V3 = [number, number, number];
 type UV = [number, number];
 
-export type TeeScene = { start(): void; stop(): void; dispose(): void };
 
 const LOGO_SRC = "/movi/logo.jpg";
 const MONOGRAM_CROP = [372, 205, 530, 500]; // crown + MV in logo.jpg pixels
@@ -387,9 +386,12 @@ function buildTee() {
   return { geometry: b.build(), perimeter: chest };
 }
 
-/* ----------------------------------------------------------------- texture */
+import { DEFAULT_GARMENTS, type Garment3DConfig } from './walking-tee-garments';
+export { DEFAULT_GARMENTS, type Garment3DConfig };
 
-async function loadImage(src: string) {
+/* ----------------------------------------------------------------- texture helpers */
+
+async function loadImage(src: string): Promise<HTMLImageElement> {
   const img = new Image();
   img.decoding = "async";
   img.src = src;
@@ -419,105 +421,208 @@ function monogramInk(logo: HTMLImageElement) {
   return canvas;
 }
 
-/**
- * Framed graphic, laid out like the reference print: brand name arched over a
- * glowing centrepiece, fading out at the bottom — but all MOVI.
- */
-function drawPrintPanel(ctx: CanvasRenderingContext2D, cx: number, cy: number, w: number, h: number, mono: HTMLCanvasElement) {
+/** Draw dynamic graphic print panel on chest or back */
+function drawDynamicPrintPanel(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  w: number,
+  h: number,
+  mono: HTMLCanvasElement,
+  garment: Garment3DConfig,
+  customImg?: HTMLImageElement | null,
+  isBack = false,
+) {
   const x0 = cx - w / 2;
   const y0 = cy - h / 2;
   ctx.save();
 
-  // Washed panel with soft, distressed edges.
+  // 1. Subtle washed fabric bed
   const panel = ctx.createLinearGradient(0, y0, 0, y0 + h);
-  panel.addColorStop(0, "rgba(120,116,110,0.22)");
-  panel.addColorStop(0.75, "rgba(110,106,100,0.16)");
+  panel.addColorStop(0, "rgba(120,116,110,0.18)");
+  panel.addColorStop(0.75, "rgba(110,106,100,0.12)");
   panel.addColorStop(1, "rgba(110,106,100,0)");
   ctx.fillStyle = panel;
   ctx.fillRect(x0, y0, w, h);
-  for (let i = 0; i < 900; i++) {
-    ctx.fillStyle = Math.random() > 0.5 ? "rgba(0,0,0,0.16)" : "rgba(255,255,255,0.05)";
-    const s = 1 + Math.random() * 2.5;
+
+  // Soft distressing dots
+  for (let i = 0; i < (garment.graphicStyle === "vintage" ? 1200 : 400); i++) {
+    ctx.fillStyle = Math.random() > 0.5 ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.06)";
+    const s = 1 + Math.random() * (garment.graphicStyle === "vintage" ? 3.5 : 2);
     ctx.fillRect(x0 + Math.random() * w, y0 + Math.random() * h, s, s);
   }
 
-  // Warm halo behind the monogram.
-  const gy = y0 + h * 0.5;
+  // 2. Halo Glow
+  const gy = y0 + h * 0.48;
   const glow = ctx.createRadialGradient(cx, gy, 0, cx, gy, w * 0.52);
-  glow.addColorStop(0, "rgba(214,160,98,0.55)");
-  glow.addColorStop(0.45, "rgba(150,72,52,0.28)");
-  glow.addColorStop(1, "rgba(87,38,32,0)");
+  if (garment.graphicStyle === "vintage") {
+    glow.addColorStop(0, "rgba(180,120,70,0.45)");
+    glow.addColorStop(0.5, "rgba(110,60,40,0.2)");
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+  } else if (garment.graphicStyle === "hoodie") {
+    glow.addColorStop(0, "rgba(214,160,98,0.35)");
+    glow.addColorStop(0.6, "rgba(60,60,65,0.15)");
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+  } else if (garment.graphicStyle === "technical") {
+    glow.addColorStop(0, "rgba(120,150,130,0.35)");
+    glow.addColorStop(0.6, "rgba(40,55,45,0.15)");
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+  } else {
+    glow.addColorStop(0, "rgba(214,160,98,0.5)");
+    glow.addColorStop(0.45, "rgba(150,72,52,0.25)");
+    glow.addColorStop(1, "rgba(87,38,32,0)");
+  }
   ctx.fillStyle = glow;
   ctx.fillRect(x0, y0, w, h);
 
-  // Crown monogram.
-  const mw = w * 0.86;
-  const mh = (mw * mono.height) / mono.width;
-  ctx.shadowColor = "rgba(0,0,0,0.55)";
-  ctx.shadowBlur = w * 0.03;
-  ctx.drawImage(mono, cx - mw / 2, gy - mh / 2, mw, mh);
-  ctx.shadowBlur = 0;
-
-  // Arched wordmark.
-  const text = "MOVI CLOTHING";
-  const size = w * 0.165;
-  ctx.font = `500 ${size}px "Cormorant Garamond", Georgia, serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  const radius = w * 0.78;
-  const arcCy = y0 + Math.min(h * 0.14, w * 0.2) + radius;
-  const widths = [...text].map((ch) => ctx.measureText(ch).width + size * 0.06);
-  const total = widths.reduce((sum, v) => sum + v, 0);
-  let angle = -total / radius / 2;
-  ctx.lineJoin = "round";
-  for (let i = 0; i < text.length; i++) {
-    const a = angle + widths[i] / radius / 2;
+  // 3. Central Graphic / Artwork
+  if (customImg) {
+    // Custom product image print
+    const imgW = w * 0.75;
+    const imgH = (imgW * customImg.height) / (customImg.width || 1);
     ctx.save();
-    ctx.translate(cx + Math.sin(a) * radius, arcCy - Math.cos(a) * radius);
-    ctx.rotate(a);
-    ctx.lineWidth = size * 0.14;
-    ctx.strokeStyle = "rgba(10,10,10,0.85)";
-    ctx.strokeText(text[i], 0, 0);
-    ctx.fillStyle = `rgb(${PRINT_INK.join(",")})`;
-    ctx.fillText(text[i], 0, 0);
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur = w * 0.04;
+    ctx.drawImage(customImg, cx - imgW / 2, gy - imgH / 2, imgW, imgH);
     ctx.restore();
-    angle += widths[i] / radius;
+  } else if (garment.graphicStyle === "hoodie") {
+    // Architectural Hoodie Chest Graphic
+    ctx.save();
+    ctx.strokeStyle = "rgba(234, 227, 214, 0.45)";
+    ctx.lineWidth = Math.max(2, w * 0.012);
+    ctx.strokeRect(cx - w * 0.38, gy - h * 0.22, w * 0.76, h * 0.44);
+
+    ctx.font = `700 ${w * 0.16}px "Cormorant Garamond", Georgia, serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = `rgb(${PRINT_INK.join(",")})`;
+    ctx.fillText(`MOVI / ${garment.code}`, cx, gy - h * 0.04);
+
+    ctx.font = `600 ${w * 0.048}px Inter, sans-serif`;
+    ctx.fillStyle = "rgba(234, 227, 214, 0.75)";
+    ctx.fillText("HEAVYWEIGHT FLEECE", cx, gy + h * 0.12);
+    ctx.restore();
+  } else if (garment.graphicStyle === "technical") {
+    // Technical Spec Blueprint Graphic
+    ctx.save();
+    ctx.strokeStyle = "rgba(200, 215, 205, 0.5)";
+    ctx.lineWidth = Math.max(1.5, w * 0.01);
+    ctx.strokeRect(cx - w * 0.42, gy - h * 0.26, w * 0.84, h * 0.52);
+
+    // Crosshairs
+    ctx.beginPath();
+    ctx.moveTo(cx - w * 0.42, gy);
+    ctx.lineTo(cx - w * 0.35, gy);
+    ctx.moveTo(cx + w * 0.35, gy);
+    ctx.lineTo(cx + w * 0.42, gy);
+    ctx.stroke();
+
+    ctx.font = `700 ${w * 0.11}px Inter, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#e67e22";
+    ctx.fillText(`[ SPEC.${garment.code} ]`, cx, gy - h * 0.1);
+
+    ctx.font = `600 ${w * 0.045}px Inter, sans-serif`;
+    ctx.fillStyle = `rgb(${PRINT_INK.join(",")})`;
+    ctx.fillText("18.9986° N, 72.8258° E", cx, gy + h * 0.02);
+    ctx.fillText("MUMBAI ATELIER LAB", cx, gy + h * 0.12);
+    ctx.restore();
+  } else if (garment.graphicStyle === "minimal") {
+    // Ultra Minimalist Monogram
+    const mw = w * 0.55;
+    const mh = (mw * mono.height) / mono.width;
+    ctx.save();
+    ctx.filter = "brightness(1.2)";
+    ctx.drawImage(mono, cx - mw / 2, gy - mh / 2, mw, mh);
+    ctx.restore();
+  } else {
+    // Classic Crown Monogram with drop shadow
+    const mw = w * 0.82;
+    const mh = (mw * mono.height) / mono.width;
+    ctx.shadowColor = "rgba(0,0,0,0.55)";
+    ctx.shadowBlur = w * 0.03;
+    ctx.drawImage(mono, cx - mw / 2, gy - mh / 2, mw, mh);
+    ctx.shadowBlur = 0;
   }
 
-  // Tagline where the reference has its stem.
-  ctx.font = `500 ${w * 0.045}px Inter, sans-serif`;
-  ctx.fillStyle = `rgba(${PRINT_INK.join(",")},0.8)`;
-  ctx.fillText("M O V E   Y O U R   W A Y .", cx, y0 + h * 0.86);
+  // 4. Arched Wordmark / Headline
+  if (garment.graphicStyle !== "technical") {
+    const text = garment.headline || "MOVI CLOTHING";
+    const size = w * (isBack ? 0.15 : 0.165);
+    ctx.font = `500 ${size}px "Cormorant Garamond", Georgia, serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const radius = w * 0.78;
+    const arcCy = y0 + Math.min(h * 0.14, w * 0.2) + radius;
+    const widths = [...text].map((ch) => ctx.measureText(ch).width + size * 0.06);
+    const total = widths.reduce((sum, v) => sum + v, 0);
+    let angle = -total / radius / 2;
+    ctx.lineJoin = "round";
+    for (let i = 0; i < text.length; i++) {
+      const a = angle + widths[i] / radius / 2;
+      ctx.save();
+      ctx.translate(cx + Math.sin(a) * radius, arcCy - Math.cos(a) * radius);
+      ctx.rotate(a);
+      ctx.lineWidth = size * 0.14;
+      ctx.strokeStyle = "rgba(10,10,10,0.85)";
+      ctx.strokeText(text[i], 0, 0);
+      ctx.fillStyle = garment.fabricColor === "#ded8cc" ? "#1a1a1a" : `rgb(${PRINT_INK.join(",")})`;
+      ctx.fillText(text[i], 0, 0);
+      ctx.restore();
+      angle += widths[i] / radius;
+    }
+  }
+
+  // 5. Tagline & Subline
+  ctx.font = `500 ${w * 0.046}px Inter, sans-serif`;
+  ctx.fillStyle = garment.fabricColor === "#ded8cc" ? "rgba(20,20,20,0.85)" : `rgba(${PRINT_INK.join(",")},0.8)`;
+  ctx.textAlign = "center";
+  ctx.fillText(garment.tagline || "M O V E   Y O U R   W A Y .", cx, y0 + h * 0.86);
+
   ctx.restore();
 }
 
-function fabricTexture(perimeter: number, logo: HTMLImageElement) {
+/** Renders the complete 2048px fabric texture onto the canvas */
+function renderFabricCanvas(
+  canvas: HTMLCanvasElement,
+  perimeter: number,
+  logo: HTMLImageElement,
+  garment: Garment3DConfig,
+  mono: HTMLCanvasElement,
+  customImg?: HTMLImageElement | null,
+) {
   const W = 2048;
   const H = Math.round((W * V_MAX) / perimeter);
   const pxPerUnit = W / perimeter;
-  const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d")!;
   const yAt = (worldY: number) => H * (1 - (worldY - HEM_Y) / V_MAX);
 
-  ctx.fillStyle = FABRIC;
+  // Base fabric dye
+  ctx.fillStyle = garment.fabricColor || FABRIC;
   ctx.fillRect(0, 0, W, H);
 
-  // Garment-dyed wash: soft uneven patches.
+  // Soft garment-dyed wash mottles
+  const isLight = garment.fabricColor === "#ded8cc";
   for (let i = 0; i < 220; i++) {
     const x = Math.random() * W;
     const y = Math.random() * H;
     const r = 40 + Math.random() * 160;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, Math.random() > 0.5 ? "rgba(255,255,255,0.015)" : "rgba(0,0,0,0.035)");
+    if (isLight) {
+      g.addColorStop(0, Math.random() > 0.5 ? "rgba(0,0,0,0.02)" : "rgba(180,170,150,0.04)");
+    } else {
+      g.addColorStop(0, Math.random() > 0.5 ? "rgba(255,255,255,0.015)" : "rgba(0,0,0,0.035)");
+    }
     g.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = g;
     ctx.fillRect(x - r, y - r, r * 2, r * 2);
   }
 
-  // Twin-needle hem stitching and side seams.
-  ctx.strokeStyle = "rgba(255,255,255,0.1)";
+  // Twin-needle hem stitching and side seams
+  ctx.strokeStyle = isLight ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.1)";
   ctx.lineWidth = 2;
   ctx.setLineDash([7, 5]);
   for (const y of [HEM_Y + 0.028, HEM_Y + 0.042]) {
@@ -527,7 +632,7 @@ function fabricTexture(perimeter: number, logo: HTMLImageElement) {
     ctx.stroke();
   }
   ctx.setLineDash([]);
-  ctx.strokeStyle = "rgba(0,0,0,0.35)";
+  ctx.strokeStyle = isLight ? "rgba(0,0,0,0.15)" : "rgba(0,0,0,0.35)";
   ctx.lineWidth = 3;
   for (const x of [0, W / 2, W]) {
     ctx.beginPath();
@@ -536,87 +641,95 @@ function fabricTexture(perimeter: number, logo: HTMLImageElement) {
     ctx.stroke();
   }
 
-  // Same artwork twice, as in the reference: chest-sized front, full back.
-  const mono = monogramInk(logo);
-  drawPrintPanel(ctx, W * 0.25, yAt(0.0), 0.47 * pxPerUnit, 0.62 * pxPerUnit, mono);
-  drawPrintPanel(ctx, W * 0.75, yAt(-0.27), 0.7 * pxPerUnit, 1.2 * pxPerUnit, mono);
+  // Draw Front Chest Artwork
+  drawDynamicPrintPanel(ctx, W * 0.25, yAt(0.0), 0.47 * pxPerUnit, 0.62 * pxPerUnit, mono, garment, customImg, false);
 
-  const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
-  texture.anisotropy = 4;
-  return texture;
+  // Draw Back Oversized Artwork
+  drawDynamicPrintPanel(ctx, W * 0.75, yAt(-0.27), 0.72 * pxPerUnit, 1.25 * pxPerUnit, mono, garment, customImg, true);
 }
 
 /* ------------------------------------------------------------------ shader */
 
 const NOISE_GLSL = /* glsl */ `
 float teeHash(vec3 p) {
-  p = fract(p * 0.1031);
-  p += dot(p, p.zyx + 31.32);
-  return fract((p.x + p.y) * p.z);
+  p = fract(p * 0.3183099 + 0.1);
+  p *= 17.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
 }
 float teeNoise(vec3 x) {
-  vec3 i = floor(x);
-  vec3 f = fract(x);
-  f = f * f * (3.0 - 2.0 * f);
+  vec3 p = floor(x);
+  vec3 w = fract(x);
+  vec3 u = w * w * (3.0 - 2.0 * w);
+  float n = p.x + p.y * 157.0 + 113.0 * p.z;
   return mix(
-    mix(mix(teeHash(i), teeHash(i + vec3(1, 0, 0)), f.x), mix(teeHash(i + vec3(0, 1, 0)), teeHash(i + vec3(1, 1, 0)), f.x), f.y),
-    mix(mix(teeHash(i + vec3(0, 0, 1)), teeHash(i + vec3(1, 0, 1)), f.x), mix(teeHash(i + vec3(0, 1, 1)), teeHash(i + vec3(1, 1, 1)), f.x), f.y),
-    f.z);
+    mix(mix(teeHash(p + vec3(0,0,0)), teeHash(p + vec3(1,0,0)), u.x),
+        mix(teeHash(p + vec3(0,1,0)), teeHash(p + vec3(1,1,0)), u.x), u.y),
+    mix(mix(teeHash(p + vec3(0,0,1)), teeHash(p + vec3(1,0,1)), u.x),
+        mix(teeHash(p + vec3(0,1,1)), teeHash(p + vec3(1,1,1)), u.x), u.y), u.z);
 }
 `;
 
 const VERTEX_HEADER = /* glsl */ `
-uniform float uPhase;
-uniform float uWalk;
-uniform float uTime;
 attribute vec3 aDisp;
 attribute float aSwing;
 attribute float aRib;
+uniform float uPhase;
+uniform float uWalk;
+uniform float uTime;
 varying vec3 vRest;
 varying float vRib;
-${NOISE_GLSL}
-mat3 teeRotX(float a) { float c = cos(a), s = sin(a); return mat3(1.0, 0.0, 0.0, 0.0, c, s, 0.0, -s, c); }
-mat3 teeRotY(float a) { float c = cos(a), s = sin(a); return mat3(c, 0.0, -s, 0.0, 1.0, 0.0, s, 0.0, c); }
-mat3 teeRotZ(float a) { float c = cos(a), s = sin(a); return mat3(c, s, 0.0, -s, c, 0.0, 0.0, 0.0, 1.0); }
 
-vec3 teeDeform(vec3 p, vec3 dn) {
+${NOISE_GLSL}
+
+mat3 teeRotX(float a) {
+  float c = cos(a), s = sin(a);
+  return mat3(1.0, 0.0, 0.0,  0.0, c, s,  0.0, -s, c);
+}
+mat3 teeRotY(float a) {
+  float c = cos(a), s = sin(a);
+  return mat3(c, 0.0, -s,  0.0, 1.0, 0.0,  s, 0.0, c);
+}
+mat3 teeRotZ(float a) {
+  float c = cos(a), s = sin(a);
+  return mat3(c, s, 0.0,  -s, c, 0.0,  0.0, 0.0, 1.0);
+}
+
+vec3 teeDeform(vec3 pos, vec3 disp) {
   float w = uWalk;
   float ph = uPhase;
-  float sleeve = step(0.001, abs(aSwing));
-  float side = sign(aSwing);
-  float sw = abs(aSwing);
+  float phL = ph + 3.14159265;
+  vec3 p = pos;
 
-  // 0 at the hem, 1 at the shoulders; sleeves ride with the shoulders.
-  float hy = mix(smoothstep(${HEM_Y.toFixed(3)}, 0.42, p.y), 1.0, sleeve);
-  float lower = 1.0 - hy;
-  // Lower cloth lags the body a little — that is what reads as fabric.
-  float phL = ph - 0.75 * lower;
-  float hipYaw = -0.07 * sin(phL) * w;
-  float shYaw = 0.25 * sin(ph) * w;
+  float hy = clamp((p.y - (${HEM_Y.toFixed(4)})) / (${(TOP_Y - HEM_Y).toFixed(4)}), 0.0, 1.0);
+  float shYaw = 0.045 * sin(ph) * w;
+  float hipYaw = -0.06 * sin(ph) * w;
 
-  // Folds: resting drape, counter-twist creases, hem flutter, soft noise.
-  float ang = atan(p.z, p.x);
-  float d = 0.012 * sin(ang * 8.0 + p.y * 1.6 + 1.3) * lower;
-  d += 0.016 * sin(ang * 3.0 + p.y * 0.8 + 0.6) * smoothstep(0.15, -0.9, p.y);
-  d += 0.0045 * sin(ang * 5.0 - p.y * 3.0) * lower;
-  d += (hipYaw - shYaw) * 0.24 * cos(ang * 6.0 + 0.4) * sin(p.y * 10.0 + ang * 2.0) * hy * lower;
-  d += 0.012 * (teeNoise(p * vec3(3.0, 1.6, 3.0) + vec3(0.0, 0.0, uTime * 0.05)) - 0.5);
-  d += 0.005 * (teeNoise(p * 7.0) - 0.5);
-  d += 0.005 * sin(ang * 4.0 - ph * 2.0 + p.y * 3.0) * lower * lower * w;
-  p += dn * d;
+  float sw = aSwing;
+  float side = sign(p.x);
+  float armPh = side > 0.0 ? phL : ph;
+  float fwd = sin(armPh);
+  float fwdVel = cos(armPh);
 
-  // Arms swing opposite the legs (with the shoulder going forward); the cuff
-  // trails slightly behind the arm.
-  vec3 pivot = vec3(0.52 * side, 0.4, 0.0);
-  p = pivot + teeRotX(side * 0.36 * sin(ph - 0.25) * w * sw - side * 0.08 * sin(ph - 1.2) * w * sw * sw) * (p - pivot);
+  vec3 shPivot = vec3(side * 0.44, 0.16, 0.0);
+  p -= shPivot;
+  float swingAngle = (fwd * 0.38 - 0.05) * sw * w;
+  float twistAngle = (-side * fwd * 0.14) * sw * w;
+  p = teeRotX(swingAngle) * p;
+  p = teeRotY(twistAngle) * p;
+  p += shPivot;
 
-  // Thighs push the front hem forward and the back hem out on the trailing leg.
-  float legL = sin(phL);
-  float fwdL = max(legL, 0.0);
-  float fwdR = max(-legL, 0.0);
-  float hemZone = (1.0 - smoothstep(${(HEM_Y + 0.02).toFixed(3)}, -0.45, p.y)) * (1.0 - sleeve);
-  float gL = exp(-pow((p.x - 0.16) / 0.2, 2.0)); // wearer's left is +x
+  float lag = -fwdVel * 0.035 * sw * w;
+  p.z += lag;
+
+  float f1 = teeNoise(vec3(p.x * 2.8 + side * fwd * 0.6, p.y * 3.4, uTime * 1.8));
+  float f2 = teeNoise(vec3(p.x * 5.0, p.y * 6.5 + uTime * 2.2, p.z * 5.0));
+  float fold = (f1 * 0.6 + f2 * 0.4 - 0.5) * 0.045 * (0.35 + 0.65 * sw) * w;
+  p += disp * fold;
+
+  float hemZone = smoothstep(0.4, 0.0, hy);
+  float fwdL = sin(ph);
+  float fwdR = sin(phL);
+  float gL = exp(-pow((p.x - 0.16) / 0.2, 2.0));
   float gR = exp(-pow((p.x + 0.16) / 0.2, 2.0));
   float frontF = smoothstep(-0.05, 0.22, p.z);
   float backF = smoothstep(0.05, -0.22, p.z);
@@ -625,12 +738,10 @@ vec3 teeDeform(vec3 p, vec3 dn) {
   p.z += (lead * 0.05 * frontF - trail * 0.03 * backF) * hemZone * w;
   p.y += lead * frontF * hemZone * hemZone * 0.02 * w;
 
-  // Body: shoulders yaw with the arms, hips counter-rotate, weight shifts
-  // side to side, and the whole tee dips at each heel strike.
   p = teeRotY(mix(hipYaw, shYaw, hy)) * p;
   p = teeRotZ(mix(0.035 * sin(phL), -0.03 * sin(ph), hy) * w) * p;
   p.x += mix(0.05 * sin(phL), 0.03 * sin(ph), hy) * w;
-  p.y += 0.015 * cos(2.0 * ph) * w; // lowest at heel strike
+  p.y += 0.015 * cos(2.0 * ph) * w;
   return p;
 }
 `;
@@ -662,21 +773,21 @@ diffuseColor.rgb *= (0.95 + 0.1 * teeMottle) * mix(1.0, 0.8, vRib);
 if (!gl_FrontFacing) diffuseColor.rgb = uInside * (0.85 + 0.3 * teeMottle);
 `;
 
-function teeMaterial(map: CanvasTexture) {
+function teeMaterial(map: CanvasTexture, initialGarment: Garment3DConfig) {
   const uniforms = {
     uPhase: { value: 0 },
     uWalk: { value: 1 },
     uTime: { value: 0 },
-    uInside: { value: new Color(INSIDE) },
+    uInside: { value: new Color(initialGarment.insideColor || INSIDE) },
   };
   const material = new MeshPhysicalMaterial({
     map,
     side: DoubleSide,
-    roughness: 0.9,
+    roughness: initialGarment.roughness ?? 0.9,
     metalness: 0,
-    sheen: 1,
+    sheen: initialGarment.sheen ?? 1,
     sheenRoughness: 0.55,
-    sheenColor: 0x8b8680,
+    sheenColor: initialGarment.sheenColor ?? 0x8b8680,
     envMapIntensity: 0.35,
   });
   material.onBeforeCompile = (shader) => {
@@ -694,7 +805,19 @@ function teeMaterial(map: CanvasTexture) {
 
 /* ------------------------------------------------------------------- scene */
 
-export async function createTeeScene(host: HTMLElement, { reduceMotion }: { reduceMotion: boolean }): Promise<TeeScene> {
+export type TeeScene = {
+  start(): void;
+  stop(): void;
+  dispose(): void;
+  setGarment(config: Garment3DConfig): Promise<void>;
+  setCustomColor(hex: string): void;
+  resetRotation(): void;
+};
+
+export async function createTeeScene(
+  host: HTMLElement,
+  { reduceMotion }: { reduceMotion: boolean },
+): Promise<TeeScene> {
   const [logo] = await Promise.all([
     loadImage(LOGO_SRC),
     document.fonts?.load('500 120px "Cormorant Garamond"').catch(() => undefined),
@@ -728,8 +851,17 @@ export async function createTeeScene(host: HTMLElement, { reduceMotion }: { redu
   scene.add(key, rim, rimLeft, new HemisphereLight(0xb9b2a7, 0x1a1410, 0.3));
 
   const { geometry, perimeter } = buildTee();
-  const map = fabricTexture(perimeter, logo);
-  const { material, uniforms } = teeMaterial(map);
+  const mono = monogramInk(logo);
+
+  let currentGarment: Garment3DConfig = { ...DEFAULT_GARMENTS[0] };
+  const fabricCanvas = document.createElement("canvas");
+  renderFabricCanvas(fabricCanvas, perimeter, logo, currentGarment, mono);
+
+  const map = new CanvasTexture(fabricCanvas);
+  map.colorSpace = SRGBColorSpace;
+  map.anisotropy = 4;
+
+  const { material, uniforms } = teeMaterial(map, currentGarment);
   const tee = new Mesh(geometry, material);
   scene.add(tee);
 
@@ -750,21 +882,55 @@ export async function createTeeScene(host: HTMLElement, { reduceMotion }: { redu
   let elapsed = 0;
   let last = 0;
   let running = false;
+  let dragRotation = 0;
+  let isDragging = false;
+  let lastX = 0;
+
   const update = (t: number) => {
     uniforms.uTime.value = t;
     uniforms.uPhase.value = (((t / STRIDE_SECONDS) % 1) * Math.PI * 2 + STRIDE_PHASE) % (Math.PI * 2);
-    // Each half turn eases in and out, so the tee lingers front-on and back-on.
     const half = t / HALF_TURN_SECONDS;
     const k = Math.floor(half);
     const u = half - k;
-    tee.rotation.y = Math.PI * ((k % 2) + 0.4 * u + 0.6 * u * u * (3 - 2 * u));
+    const autoTurn = Math.PI * ((k % 2) + 0.4 * u + 0.6 * u * u * (3 - 2 * u));
+    tee.rotation.y = autoTurn + dragRotation;
   };
+
   if (reduceMotion) {
     uniforms.uWalk.value = 0;
     tee.rotation.y = -0.45;
   } else {
     update(0);
   }
+
+  // 360° Touch and Pointer Drag
+  const onPointerDown = (e: PointerEvent) => {
+    isDragging = true;
+    lastX = e.clientX;
+    try { canvas.setPointerCapture(e.pointerId); } catch {}
+  };
+
+  const onPointerMove = (e: PointerEvent) => {
+    if (!isDragging) return;
+    const dx = e.clientX - lastX;
+    lastX = e.clientX;
+    dragRotation += dx * 0.01;
+    if (!running) {
+      tee.rotation.y += dx * 0.01;
+      renderer.render(scene, camera);
+    }
+  };
+
+  const onPointerUp = (e: PointerEvent) => {
+    if (!isDragging) return;
+    isDragging = false;
+    try { canvas.releasePointerCapture(e.pointerId); } catch {}
+  };
+
+  canvas.addEventListener("pointerdown", onPointerDown);
+  canvas.addEventListener("pointermove", onPointerMove);
+  canvas.addEventListener("pointerup", onPointerUp);
+  canvas.addEventListener("pointercancel", onPointerUp);
 
   const observer = new ResizeObserver(resize);
   observer.observe(host);
@@ -790,8 +956,49 @@ export async function createTeeScene(host: HTMLElement, { reduceMotion }: { redu
       });
     },
     stop,
+    async setGarment(newGarment: Garment3DConfig) {
+      let customImg: HTMLImageElement | null = null;
+      if (newGarment.customImage) {
+        try {
+          customImg = await loadImage(newGarment.customImage);
+        } catch {
+          customImg = null;
+        }
+      }
+
+      currentGarment = { ...newGarment };
+      renderFabricCanvas(fabricCanvas, perimeter, logo, currentGarment, mono, customImg);
+      map.needsUpdate = true;
+
+      if (newGarment.insideColor) {
+        uniforms.uInside.value.set(newGarment.insideColor);
+      }
+      if (typeof newGarment.roughness === "number") {
+        material.roughness = newGarment.roughness;
+      }
+      if (typeof newGarment.sheen === "number") {
+        material.sheen = newGarment.sheen;
+      }
+      if (typeof newGarment.sheenColor === "number") {
+        material.sheenColor.set(newGarment.sheenColor);
+      }
+      if (!running) renderer.render(scene, camera);
+    },
+    setCustomColor(hex: string) {
+      currentGarment = { ...currentGarment, fabricColor: hex };
+      renderFabricCanvas(fabricCanvas, perimeter, logo, currentGarment, mono, null);
+      map.needsUpdate = true;
+      if (!running) renderer.render(scene, camera);
+    },
+    resetRotation() {
+      dragRotation = 0;
+    },
     dispose() {
       stop();
+      canvas.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerup", onPointerUp);
+      canvas.removeEventListener("pointercancel", onPointerUp);
       observer.disconnect();
       geometry.dispose();
       material.dispose();

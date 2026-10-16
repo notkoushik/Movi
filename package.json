@@ -7,23 +7,42 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "format": "oxfmt"
+    "format": "oxfmt",
+    "api:dev": "tsx watch server/src/index.ts",
+    "api:start": "tsx server/src/index.ts",
+    "db:migrate": "tsx server/scripts/migrate.ts",
+    "test": "node scripts/test-runner.mjs",
+    "test:api": "tsx --test server/test/**/*.test.ts",
+    "test:postgres": "tsx --test server/test/postgres.test.ts",
+    "test:e2e": "node scripts/e2e-atelier-test.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.1.3",
+    "@fastify/cors": "^11.3.1",
+    "@fastify/helmet": "^13.1.2",
+    "@fastify/rate-limit": "^11.2.1",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.7",
+    "fastify": "^5.12.5",
+    "pg": "^8.23.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.13.1",
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^22.0.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/three": "^0.180.0",
     "@vitejs/plugin-react": "^6.0.0",
     "oxfmt": "^0.2.0",
     "tailwindcss": "^4.0.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.0",
     "vite": "^8.0.5"
   }

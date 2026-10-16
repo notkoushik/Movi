@@ -39,6 +39,9 @@ export default defineConfig(({ mode }) => {
           '**/.figma/**',
 ],
       },
+      proxy: {
+        '/api': 'http://localhost:8787',
+      },
     },
     preview: {
       host: process.env.FIGMA_DEV_SERVER_HOST || '0.0.0.0',

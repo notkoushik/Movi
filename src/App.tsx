@@ -1,4 +1,7 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ScrollToTop } from "./app/shell";
+import { AtelierToast } from "./app/toast";
+import { StudioQaBar } from "./app/qa-bar";
 import { Link, useNavigate } from "react-router";
 import { useStore } from "./app/store";
 import WalkingTee from "./app/walking-tee";
@@ -17,14 +20,22 @@ const images = {
   collectionCargo: "/movi/collection-cargo.jpg",
 };
 
-export const products = [
-  { code: "01", name: "Essential Oversized Tee", price: "₹ 1,299", image: images.tee, category: "T-Shirts" },
-  { code: "02", name: "Signature Hoodie", price: "₹ 1,999", image: images.hoodie, category: "Hoodies" },
-  { code: "03", name: "Vintage Graphic Tee", price: "₹ 1,499", image: images.flatlay, category: "T-Shirts" },
-  { code: "04", name: "Tech Cargo Pant", price: "₹ 1,899", image: images.night, category: "Bottoms" },
-];
+export type Product = {
+  code: string;
+  name: string;
+  price: string;
+  priceNumber?: number;
+  image: string;
+  category: string;
+  description?: string;
+};
 
-type Product = (typeof products)[number];
+export const products: Product[] = [
+  { code: "01", name: "Essential Oversized Tee", price: "₹ 1,299", priceNumber: 1299, image: images.tee, category: "T-Shirts" },
+  { code: "02", name: "Signature Hoodie", price: "₹ 1,999", priceNumber: 1999, image: images.hoodie, category: "Hoodies" },
+  { code: "03", name: "Vintage Graphic Tee", price: "₹ 1,499", priceNumber: 1499, image: images.flatlay, category: "T-Shirts" },
+  { code: "04", name: "Tech Cargo Pant", price: "₹ 1,899", priceNumber: 1899, image: images.night, category: "Bottoms" },
+];
 
 export function Mark() {
   return (
@@ -44,11 +55,21 @@ function Arrow() {
 
 export function Header({ interior = false }: { interior?: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { cart, user, signOut } = useStore();
+  const [bagBump, setBagBump] = useState(false);
+  const { cart, user, signOut, error, clearError } = useStore();
   const itemCount = cart.reduce((sum, line) => sum + line.quantity, 0);
+
+  useEffect(() => {
+    if (itemCount > 0) {
+      setBagBump(true);
+      const timer = setTimeout(() => setBagBump(false), 550);
+      return () => clearTimeout(timer);
+    }
+  }, [itemCount]);
 
   return (
     <header className={`site-header ${interior ? "site-header--interior" : ""}`}>
+      {error && <div role="alert" className="api-error-banner"><span>{error}</span><button type="button" onClick={clearError} aria-label="Dismiss error">×</button></div>}
       {/* BRAND MARK */}
       <Link to="/" aria-label="MOVI home"><Mark /></Link>
 
@@ -97,7 +118,8 @@ export function Header({ interior = false }: { interior?: boolean }) {
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
           <span>Search</span>
         </Link>
-        <Link to="/bag" aria-label={`Shopping bag, ${itemCount} items`} className="tool-btn">
+        <Link to="/bag" aria-label={`Shopping bag, ${itemCount} items`} className={`tool-btn ${bagBump ? "bag-bump" : ""}`}>
+
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></svg>
           <span>Bag ({itemCount})</span>
         </Link>
@@ -131,7 +153,7 @@ export function Header({ interior = false }: { interior?: boolean }) {
           </Link>
         )}
 
-        <Link to="/bag" className="mobile-bag-btn" aria-label={`Shopping bag, ${itemCount} items`}>
+        <Link to="/bag" className={`mobile-bag-btn ${bagBump ? "bag-bump" : ""}`} aria-label={`Shopping bag, ${itemCount} items`}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1 12H6L5 8Z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /></svg>
           {itemCount > 0 && <span className="mobile-bag-badge">{itemCount}</span>}
         </Link>
@@ -211,15 +233,41 @@ export function Header({ interior = false }: { interior?: boolean }) {
 }
 
 function ProductCard({ product }: { product: Product }) {
+  const { addToCart } = useStore();
+  const [justAdded, setJustAdded] = useState(false);
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(product.code, "L");
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 2000);
+  };
+
   return (
     <article className="product">
       <Link className="product__image" to={`/product/${product.code}`} aria-label={`View ${product.name}`}>
         <img src={product.image} alt={product.name} width="293" height="149" loading="lazy" />
-        <span>Quick view</span>
+        <div className="product__action-bar">
+          <span className="product__quick-tag">
+            <span>Quick view</span>
+            <Arrow />
+          </span>
+          <button
+            type="button"
+            className="product__quick-add-btn"
+            onClick={handleQuickAdd}
+            title="Quick add to bag (Size L)"
+          >
+            {justAdded ? "✓ Added" : "+ Bag"}
+          </button>
+        </div>
       </Link>
-      <p className="micro">MOVI / {product.code}</p>
-      <h3>{product.name}</h3>
-      <p className="product__price">{product.price}</p>
+      <div className="product__meta">
+        <p className="micro">MOVI / {product.code}</p>
+        <h3>{product.name}</h3>
+        <p className="product__price">{product.price}</p>
+      </div>
     </article>
   );
 }
@@ -339,7 +387,9 @@ export function Footer() {
 }
 
 export function CatalogScreen({ title, category }: { title: string; category?: string }) {
-  const visible = category ? products.filter((product) => product.category === category) : products;
+  const { products: storeProducts } = useStore();
+  const list = storeProducts?.length ? storeProducts : products;
+  const visible = category ? list.filter((product) => product.category === category) : list;
   return (
     <section className="screen catalog-screen">
       <div className="screen-title">
@@ -354,9 +404,10 @@ export function CatalogScreen({ title, category }: { title: string; category?: s
 }
 
 export function ProductScreen({ code }: { code: string }) {
-  const product = products.find((item) => item.code === code) ?? products[0];
+  const { products: storeProducts, addToCart } = useStore();
+  const list = storeProducts?.length ? storeProducts : products;
+  const product = list.find((item) => item.code === code) ?? list[0];
   const [size, setSize] = useState("M");
-  const { addToCart } = useStore();
   const navigate = useNavigate();
   return (
     <section className="screen product-screen">
@@ -375,8 +426,10 @@ export function ProductScreen({ code }: { code: string }) {
 }
 
 export function SearchScreen() {
+  const { products: storeProducts } = useStore();
+  const list = storeProducts?.length ? storeProducts : products;
   const [query, setQuery] = useState("");
-  const matches = useMemo(() => products.filter((product) => product.name.toLowerCase().includes(query.toLowerCase())), [query]);
+  const matches = useMemo(() => list.filter((product) => product.name.toLowerCase().includes(query.toLowerCase())), [list, query]);
   return (
     <section className="screen search-screen">
       <p className="micro">MOVI / SEARCH</p>
@@ -431,7 +484,8 @@ export function Home() {
   }, []);
 
   return (
-    <main>
+    <main className="page-transition-container">
+      <ScrollToTop />
       <Header />
       <section className="hero" aria-labelledby="hero-title">
         <img className="hero__image" src={images.hero} alt="MOVI campaign model in black streetwear at night" width="1312" height="414" fetchPriority="high" />
@@ -518,6 +572,8 @@ export function Home() {
         </Link>
       </section>
       <Footer />
+      <AtelierToast />
+      <StudioQaBar />
     </main>
   );
 }

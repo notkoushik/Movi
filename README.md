@@ -97,3 +97,48 @@ A multi-stage production `Dockerfile` and `nginx.conf` are already provided:
 - `/account` — Customer Profile & Order History
 - `/admin` — Store Control Panel & Real-time Metrics
 - `/story`, `/lookbook`, `/contact`, `/shipping`, `/returns`, `/faq` — Brand Editorial Pages
+
+---
+
+## 🛠️ Backend API (PostgreSQL)
+
+The repository now includes an opt-in Fastify API under `server/`. The existing storefront remains safe to preview with its current demo/local-storage behavior while the API is introduced, so backend rollout does not break the design surface. The API client switch should be enabled only after the database has been migrated and the end-to-end storefront flows have been verified.
+
+### Backend prerequisites
+
+- PostgreSQL 14+
+- Node.js 20+
+
+Copy `server/env.example` to your local environment and set `DATABASE_URL`. Then run the migrations and seed catalog data:
+
+```bash
+npm run db:migrate
+npm run api:dev
+```
+
+The API listens on `http://localhost:8787` by default.
+
+Implemented API areas:
+
+- Cookie-based customer/admin authentication
+- Password hashing with bcrypt
+- PostgreSQL sessions
+- Product catalog and variants
+- Server-side cart and stock checks
+- Transactional checkout and inventory decrement
+- Customer order history
+- Admin dashboard summary
+- Admin order state transitions
+- Admin inventory adjustments
+- Helmet security headers, CORS credentials, and rate limiting
+- Consistent validation errors for frontend field mapping
+
+### Backend checks
+
+```bash
+npm run typecheck
+npm run test:api
+npm run build
+```
+
+`npm run test:api` uses a deterministic in-memory repository to exercise real Fastify routes, cookies, authentication, authorization, validation, cart boundaries, checkout persistence, order status transitions, and inventory safety. A PostgreSQL smoke run should be executed with a real `DATABASE_URL` before deployment.
